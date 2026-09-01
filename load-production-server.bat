@@ -1,0 +1,3 @@
+@echo off
+echo Starting Backend production Server...
+bun i && bun start
