@@ -20,21 +20,3 @@
         "nodemon": "^2.0.15"
     }
 }
-
-
-PORT=8080
-
-MONGO_URI=mongodb+srv://CodeLab-A2Z:SoneNahiDungaKaamToKrnaPadega@a2z.eg65yyz.mongodb.net/paymentize
-
-HEADLESS=false
-MAX_SESSIONS=20
-
-# 20 minutes
-IDLE_TIMEOUT_MS=1200000
-
-QR_TTL_MS=300000
-QR_LOG_INTERVAL_MS=30000
-
-PAYMENT_PAGE_URL=https://superprofile.bio/vp/parent-control-app-
-CHECKOUT_EMAIL=test.user@example.com
-CHECKOUT_PHONE=9876543210
