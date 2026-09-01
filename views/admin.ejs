@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <header class="page-header">
+        <h1><%= title %></h1>
+        <span class="live" id="live-indicator">connecting…</span>
+    </header>
+
+    <section class="cards">
+        <article class="card card-open">
+            <span class="card-label">Browsers open</span>
+            <span class="card-value" id="stat-open">–</span>
+        </article>
+        <article class="card card-success">
+            <span class="card-label">Payments successful</span>
+            <span class="card-value" id="stat-success">–</span>
+        </article>
+        <article class="card card-failed">
+            <span class="card-label">Payments failed</span>
+            <span class="card-value" id="stat-failed">–</span>
+        </article>
+        <article class="card card-pending">
+            <span class="card-label">Pending</span>
+            <span class="card-value" id="stat-pending">–</span>
+        </article>
+    </section>
+
+    <section class="panel">
+        <div class="panel-header">
+            <h2>Payments <small class="muted">newest first</small></h2>
+            <label class="page-size">
+                Rows
+                <select id="page-size">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </label>
+        </div>
+        <table class="payments">
+            <thead>
+                <tr>
+                    <th>Created</th>
+                    <th>Payment ID</th>
+                    <th>Device</th>
+                    <th>Identity used</th>
+                    <th>Status</th>
+                    <th>QR expires</th>
+                    <th>Detail</th>
+                </tr>
+            </thead>
+            <tbody id="payment-rows">
+                <tr class="empty"><td colspan="7">Loading…</td></tr>
+            </tbody>
+        </table>
+
+        <nav class="pager">
+            <button id="page-first" type="button" title="First page">&laquo;</button>
+            <button id="page-prev" type="button">Prev</button>
+            <span id="page-info" class="page-info">–</span>
+            <button id="page-next" type="button">Next</button>
+            <button id="page-last" type="button" title="Last page">&raquo;</button>
+        </nav>
+    </section>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>

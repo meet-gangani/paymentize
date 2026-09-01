@@ -1,0 +1,22 @@
+{
+    "name": "express-puppeteer",
+    "version": "1.0.0",
+    "description": "Node.js Express server with Puppeteer integration",
+    "main": "server.js",
+    "scripts": {
+        "start": "node --env-file-if-exists=.env server.js",
+        "dev": "nodemon --exec \"node --env-file-if-exists=.env\" server.js"
+    },
+    "dependencies": {
+        "ejs": "^6.0.1",
+        "express": "^4.17.1",
+        "jsqr": "^1.4.0",
+        "mongoose": "^9.9.4",
+        "morgan-body": "^2.6.9",
+        "pngjs": "^7.0.0",
+        "puppeteer": "^13.1.1"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.15"
+    }
+}

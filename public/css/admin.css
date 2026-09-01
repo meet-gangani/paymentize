@@ -1,0 +1,148 @@
+:root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #262b36;
+    --text: #e6e9ef;
+    --muted: #8b93a7;
+    --open: #4c8dff;
+    --success: #2fbf71;
+    --failed: #e5484d;
+    --pending: #d9a441;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+
+.page-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.page-header h1 { font-size: 20px; margin: 0; }
+
+.live { color: var(--muted); font-size: 12px; }
+.live.stale { color: var(--failed); }
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: 8px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.card-open { border-left-color: var(--open); }
+.card-success { border-left-color: var(--success); }
+.card-failed { border-left-color: var(--failed); }
+.card-pending { border-left-color: var(--pending); }
+
+.card-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.card-value { font-size: 30px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+}
+
+.panel h2 { font-size: 15px; margin: 0; }
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.muted { color: var(--muted); font-weight: 400; font-size: 12px; }
+
+.page-size { color: var(--muted); font-size: 12px; display: flex; align-items: center; gap: 6px; }
+
+.page-size select,
+.pager button {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.pager {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.pager button:hover:not(:disabled) { border-color: var(--open); color: var(--open); }
+.pager button:disabled { opacity: .4; cursor: default; }
+
+.page-info {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 0 4px;
+    font-variant-numeric: tabular-nums;
+}
+
+table.payments { width: 100%; border-collapse: collapse; }
+
+table.payments th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+table.payments td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+
+table.payments tr:last-child td { border-bottom: none; }
+table.payments small { color: var(--muted); }
+tr.empty td { color: var(--muted); text-align: center; padding: 22px; }
+
+.badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-success { background: rgba(47, 191, 113, .15); color: var(--success); }
+.badge-failed { background: rgba(229, 72, 77, .15); color: var(--failed); }
+.badge-pending { background: rgba(217, 164, 65, .15); color: var(--pending); }
+
+.retries { color: var(--failed); }
