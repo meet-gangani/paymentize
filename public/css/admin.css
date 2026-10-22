@@ -146,3 +146,50 @@ tr.empty td { color: var(--muted); text-align: center; padding: 22px; }
 .badge-pending { background: rgba(217, 164, 65, .15); color: var(--pending); }
 
 .retries { color: var(--failed); }
+
+/* Password popup. [hidden] has to be restated - display: flex would beat it. */
+.login-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, .7);
+    z-index: 10;
+}
+
+.login-overlay[hidden] { display: none; }
+
+.login-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.login-box h2 { font-size: 16px; margin: 0; }
+
+.login-box input,
+.login-box button {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font: inherit;
+}
+
+.login-box input:focus { outline: none; border-color: var(--open); }
+
+.login-box button {
+    background: var(--open);
+    border-color: var(--open);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.login-error { color: var(--failed); font-size: 12px; margin: 0; }

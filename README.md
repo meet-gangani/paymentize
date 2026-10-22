@@ -30,8 +30,19 @@ decoded QR. **The browser stays open** afterwards, regenerating the QR every 4m3
 { "paymentId": "…", "qrValue": "upi://pay?pa=…", "expireAt": "2026-08-31T18:55:00.000Z" }
 ```
 
-Takes ~20s — the response cannot exist before the QR does. Returns `503` once `MAX_SESSIONS`
-browsers are already open.
+Takes ~4s headless — the response cannot exist before the QR does, and most of what is left is
+Cashfree minting it. Returns `503` once `MAX_SESSIONS` browsers are already open.
+
+Set `LOG_TIMINGS=true` to get the breakdown per request:
+
+```
+[6fb07eed] generate-payment served in 3509ms (checkout 1876ms, qr revealed 1584ms)
+[6fb07eed] checkout ready in 1869ms (warm page 0ms, form filled 187ms, modal 786ms, upi frame 896ms)
+```
+
+The page load is off the critical path: `WARM_POOL_SIZE` pages sit pre-loaded on the empty
+checkout form, and a request collects one instead of navigating. `HEADLESS=false` roughly doubles
+the total, so keep it for debugging only.
 
 ### `GET /get-payment-status?paymentId=<uuid>`
 
@@ -59,7 +70,7 @@ Bash / Git Bash. For PowerShell or cmd see the note at the end.
 BASE=http://localhost:8080
 ```
 
-**1. Create a payment** (takes ~20s — the QR has to be minted first):
+**1. Create a payment** (takes ~4s — the QR has to be minted first):
 
 ```bash
 curl -X POST $BASE/generate-payment \
@@ -197,3 +208,15 @@ place; the short version:
 
 Every `generate-payment` creates a real ₹1.00 Cashfree session, and each regeneration mints a new
 transaction ref. Nothing is charged unless someone actually pays.
+
+
+
+
+```
+pm2 start server.js \
+            --name paymentize \
+            -i 1 \
+            --node-args="--max-old-space-size=4096" \
+            --max-memory-restart 5G \
+            --restart-delay 3000
+```

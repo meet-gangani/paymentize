@@ -2,6 +2,8 @@ const config = require('./src/config');
 const db = require('./src/db');
 const { createApp } = require('./src/app');
 const sessions = require('./src/services/session.manager');
+const browserPool = require('./src/services/browser.pool');
+const checkout = require('./src/services/checkout.service');
 
 async function start() {
     await db.connect();
@@ -15,9 +17,15 @@ async function start() {
             `idle timeout ${Math.round(config.idleTimeoutMs / 60000)} min`);
     });
 
+    // Chromium's cold start and the first checkout load are the two slowest
+    // steps in generate-payment, and neither needs anything from the request -
+    // so both happen now, in the background, rather than on the first caller.
+    browserPool.warmUp().then(ok => { if (ok) checkout.startWarmPool(); });
+
     // Browsers are child processes; without this they outlive the server.
     const shutdown = async signal => {
         console.log(`\n${signal} received - closing open browsers...`);
+        checkout.stopWarmPool();
         const closed = await sessions.closeAll(`Server shut down (${signal})`);
         console.log(`Closed ${closed} browser session(s)`);
         server.close();

@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="/css/admin.css">
 </head>
 <body>
+    <div class="login-overlay" id="login-overlay" <%= authed ? 'hidden' : '' %>>
+        <form class="login-box" id="login-form">
+            <h2>Admin login</h2>
+            <input type="password" id="login-password" placeholder="Password"
+                   inputmode="numeric" autocomplete="current-password" required autofocus>
+            <p class="login-error" id="login-error" hidden>Wrong password</p>
+            <button type="submit">Unlock</button>
+        </form>
+    </div>
+
+    <main id="dashboard" <%= authed ? '' : 'hidden' %>>
     <header class="page-header">
         <h1><%= title %></h1>
         <span class="live" id="live-indicator">connecting…</span>
@@ -69,6 +80,7 @@
             <button id="page-last" type="button" title="Last page">&raquo;</button>
         </nav>
     </section>
+    </main>
 
     <script src="/js/admin.js"></script>
 </body>

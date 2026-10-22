@@ -1,9 +1,27 @@
+const crypto = require('crypto');
 const express = require('express');
 
+const config = require('../config');
 const sessions = require('../services/session.manager');
 const { Payment, STATUS } = require('../models/payment.model');
 
 const router = express.Router();
+
+// One token per process, handed out as a cookie on a correct password. A restart
+// mints a new one, so every open panel gets a 401 and asks for the password again.
+const AUTH_COOKIE = 'admin_auth';
+const AUTH_TOKEN = crypto.randomBytes(32).toString('hex');
+
+function isAuthed(req) {
+    return (req.headers.cookie || '')
+        .split(';')
+        .some(pair => pair.trim() === `${AUTH_COOKIE}=${AUTH_TOKEN}`);
+}
+
+function requireAuth(req, res, next) {
+    if (isAuthed(req)) return next();
+    res.status(401).json({ error: 'Password required' });
+}
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
@@ -17,13 +35,23 @@ const LIST_FIELDS = {
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
+// The page itself carries no data, so it always renders - locked behind the
+// password popup unless the cookie is already valid.
 router.get('/', (req, res) => {
-    res.render('admin', { title: 'Paymentize Admin' });
+    res.render('admin', { title: 'Paymentize Admin', authed: isAuthed(req) });
+});
+
+router.post('/login', (req, res) => {
+    if (String(req.body?.password ?? '') !== config.adminPassword) {
+        return res.status(401).json({ error: 'Wrong password' });
+    }
+    res.cookie(AUTH_COOKIE, AUTH_TOKEN, { path: '/admin', httpOnly: true, sameSite: 'strict' });
+    res.status(200).json({ ok: true });
 });
 
 // Polled by public/js/admin.js every couple of seconds.
 // ?page=1&limit=20 - newest first.
-router.get('/stats.json', async (req, res) => {
+router.get('/stats.json', requireAuth, async (req, res) => {
     try {
         // A non-positive limit is junk, not a request for one row per page.
         const rawLimit = parseInt(req.query.limit, 10);

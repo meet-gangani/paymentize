@@ -46,7 +46,12 @@ async function generatePayment({ deviceId, manufacturer, modelNo }) {
     const { email, phone } = identities.pickIdentity();
     console.log(`${label}using ${email} / ${phone}`);
 
-    await Payment.create({
+    const timer = checkout.createTimer(label);
+
+    // Nothing in the browser flow reads this row, so the insert overlaps the
+    // checkout instead of gating it. Every path that writes to the row waits on
+    // the handle first, so no update can outrun the document.
+    const created = Payment.create({
         paymentId,
         deviceId,
         manufacturer,
@@ -56,6 +61,7 @@ async function generatePayment({ deviceId, manufacturer, modelNo }) {
         status: STATUS.PENDING,
         lastActivityAt: new Date()
     });
+    created.catch(() => { }); // settled properly below; this only disarms the warning
 
     let opened;
     try {
@@ -63,8 +69,9 @@ async function generatePayment({ deviceId, manufacturer, modelNo }) {
             label,
             email,
             phone,
-            onTransactionId: transactionId =>
-                Payment.updateOne({ paymentId }, { $set: { transactionId } }).catch(() => { }),
+            onTransactionId: transactionId => created
+                .then(() => Payment.updateOne({ paymentId }, { $set: { transactionId } }))
+                .catch(() => { }),
             // A genuine status transition means the payer acted - that is movement.
             onActivity: () => sessions.touch(paymentId),
             // Reported for visibility only; the retry banner drives the recovery.
@@ -72,6 +79,7 @@ async function generatePayment({ deviceId, manufacturer, modelNo }) {
                 console.log(`${label}attempt failed (${status}) - waiting for retry banner`)
         });
     } catch (error) {
+        await created.catch(() => { }); // the row has to exist before it can be failed
         await Payment.updateOne({ paymentId }, {
             $set: {
                 status: STATUS.FAILED,
@@ -82,8 +90,18 @@ async function generatePayment({ deviceId, manufacturer, modelNo }) {
         });
         throw error;
     }
+    timer.mark('checkout');
 
     const { context, page, upiFrame, paymentSettled } = opened;
+
+    // Every write from here on assumes the row landed. The session is not
+    // registered yet, so a failed insert has to take the context down by hand.
+    try {
+        await created;
+    } catch (error) {
+        await browserPool.closeContext(context);
+        throw error;
+    }
 
     const cancel = {};
     sessions.add(paymentId, { context, page, cancel });
@@ -113,7 +131,9 @@ async function generatePayment({ deviceId, manufacturer, modelNo }) {
         const qrValue = checkout.decodeQrDataUrl(await checkout.revealQr(upiFrame));
         if (!qrValue) throw new Error('QR image found but could not be decoded');
         checkout.logHighlighted(`${label}QR VALUE`, qrValue);
+        timer.mark('qr revealed');
         first = await recordQr(paymentId, qrValue);
+        timer.report('generate-payment served');
     } catch (error) {
         await sessions.close(paymentId, {
             status: STATUS.FAILED,

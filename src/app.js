@@ -11,7 +11,8 @@ function createApp({ logRequests = true } = {}) {
     const app = express();
 
     app.use(express.json());
-    if (logRequests) morganBody(app);
+    // The admin login posts its password as JSON - keep it out of the logs.
+    if (logRequests) morganBody(app, { filterParameters: ['password'] });
 
     app.set('view engine', 'ejs');
     app.set('views', path.join(__dirname, '..', 'views'));

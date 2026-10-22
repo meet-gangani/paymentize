@@ -5,8 +5,14 @@ const POLL_INTERVAL_MS = 2000;
 // are on, so polling can never yank them back to page 1.
 let currentPage = 1;
 let pageSize = 20;
+let pollTimer = null;
 
 const els = {
+    overlay: document.getElementById('login-overlay'),
+    loginForm: document.getElementById('login-form'),
+    loginPassword: document.getElementById('login-password'),
+    loginError: document.getElementById('login-error'),
+    dashboard: document.getElementById('dashboard'),
     live: document.getElementById('live-indicator'),
     open: document.getElementById('stat-open'),
     success: document.getElementById('stat-success'),
@@ -71,6 +77,7 @@ function renderPager(pagination) {
 async function poll() {
     try {
         const response = await fetch(`/admin/stats.json?page=${currentPage}&limit=${pageSize}`);
+        if (response.status === 401) return lock(); // cookie gone or server restarted
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const stats = await response.json();
 
@@ -105,5 +112,48 @@ els.pageSize.addEventListener('change', event => {
     goTo(1); // row count changed, so the old page number is meaningless
 });
 
-poll();
-setInterval(poll, POLL_INTERVAL_MS);
+function startPolling() {
+    if (pollTimer) return;
+    poll();
+    pollTimer = setInterval(poll, POLL_INTERVAL_MS);
+}
+
+function lock() {
+    clearInterval(pollTimer);
+    pollTimer = null;
+    els.dashboard.hidden = true;
+    els.overlay.hidden = false;
+    els.loginPassword.focus();
+}
+
+function unlock() {
+    els.overlay.hidden = true;
+    els.loginError.hidden = true;
+    els.dashboard.hidden = false;
+    startPolling();
+}
+
+els.loginForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    const password = els.loginPassword.value;
+    els.loginPassword.value = '';
+
+    try {
+        const response = await fetch('/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+        });
+        if (response.ok) return unlock();
+        els.loginError.textContent = response.status === 401
+            ? 'Wrong password'
+            : `Login failed (HTTP ${response.status})`;
+    } catch (error) {
+        els.loginError.textContent = `Login failed (${error.message})`;
+    }
+    els.loginError.hidden = false;
+    els.loginPassword.focus();
+});
+
+// The server renders the popup already hidden when the cookie is valid.
+if (els.overlay.hidden) startPolling();
